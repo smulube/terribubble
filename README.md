@@ -9,10 +9,8 @@ npm install
 npm start
 ```
 
-# Running on Heroku
+# On Heroku
 
 ``` bash
-heroku create
-git push heroku master
-heroku open
+https://terribubble.herokuapp.com/
 ```
