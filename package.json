@@ -7,7 +7,10 @@
   },
   "dependencies": {
     "express": "^4.4.5",
-    "ws": "0.4.x"
+    "geolib": "^2.0.14",
+    "node-sass-middleware": "latest",
+    "socket.io": "latest",
+    "underscore": "^1.7.0"
   },
   "engines": {
     "node": "0.10.x"

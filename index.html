@@ -1,35 +1,23 @@
-<html>
-<head>
-    <style>
-        body {
-            font-family: "Helvetica Neue", helvetica, arial;
-            padding: 15px;
-        }
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Terribubble</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
+        <link rel="stylesheet" href="css/main.css">
+        <script src="bower_components/modernizr/modernizr.js"></script>
+    </head>
+    <body>
+        <div class="js-id id"></div>
+        <div class="js-log log"></div>
+        <br>
+        <pre class="js-geo geo"></pre>
 
-        ul li {
-            line-height: 1.4;
-        }
-    </style>
-
-    <script>
-        var host = location.origin.replace(/^http/, 'ws')
-        var ws = new WebSocket(host);
-        ws.onmessage = function (event) {
-            var li = document.createElement('li');
-            li.innerHTML = JSON.parse(event.data);
-            document.querySelector('#pings').appendChild(li);
-        };
-    </script>
-</head>
-<body>
-    <h1>Pings</h1>
-    <ul id='pings'></ul>
-</body>
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="js/main.js"></script>
+    </body>
 </html>
 

@@ -1,0 +1,30 @@
+@import 'normalize';
+
+body {
+    padding: 40px 20px 20px;
+    font-size: 12px;
+}
+
+.log-item {
+    opacity: 0.5;
+
+    &:first-child {
+        opacity: 1;
+        font-size: 16px;
+    }
+}
+
+.id {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px 0;
+    text-align: center;
+    background: black;
+    color: gray;
+
+    strong {
+        color: white;
+    }
+}
