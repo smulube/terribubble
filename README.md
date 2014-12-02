@@ -1,6 +1,6 @@
-# Node.js Websocket Test
+# Terribubble
 
-A tiny demo using the [einaros/ws](http://einaros.github.io/ws/) WebSockets implementation.
+Geolocated bubbles
 
 # Running Locally
 
