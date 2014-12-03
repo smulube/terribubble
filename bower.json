@@ -20,6 +20,7 @@
     "modernizr": "~2.8.3",
     "leaflet": "~0.7.3",
     "velocity": "~1.1.0",
-    "underscore": "~1.7.0"
+    "underscore": "~1.7.0",
+    "Leaflet.label": "~0.2.1"
   }
 }

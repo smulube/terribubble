@@ -3,9 +3,10 @@
 $(document).foundation();
 
 var currentId;
-var bubbles = {};
+var bubbles       = {};
 var bubbleCircles = {};
-var socket  = io.connect();
+var hasPosition   = false;
+var socket        = io.connect();
 
 var map = L.map('map', {
     center: [0, 0],
@@ -63,11 +64,15 @@ var processBubbles = function() {
                 }
             ).addTo(map);
 
+            if ( bubble.options && bubble.options.name && bubble.options.name !== "" ) {
+                bubbleCircles[bubbleId].bindLabel( bubble.options.name, {
+                    noHide: true,
+                    direction: 'auto'
+                });
+            }
+
             // if it's our bubble
             if ( bubbleId === currentId ) {
-                map.panTo( position );
-                map.panInsideBounds(bubbleCircles[bubbleId].getBounds());
-
                 if ( bubble.options ) {
                     $(".js-name").html(bubble.options.name);
                     $(".js-size").html(bubble.options.size +"m bubble");
@@ -77,13 +82,17 @@ var processBubbles = function() {
                     $(".js-name").css("color",bubble.color);
                 }
 
+
+                if ( !hasPosition ) {
+                    hasPosition = true;
+                    map.fitBounds( bubbleCircles[bubbleId].getBounds() );
+                    map.panTo( position );
+                }
+
                 $(".app-loading").velocity("fadeOut", { duration: 300 });
             }
         }
     });
-
-
-    console.log(bubbleCircles);
 };
 
 var setOptions = function(){
@@ -102,7 +111,7 @@ var updateOptions = function() {
         name : $(".js-form-name").val(),
         size : $(".js-form-size").val()
     };
-    console.log(options);
+    hasPosition = false;
     socket.emit('options', options);
 };
 
