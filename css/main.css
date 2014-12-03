@@ -6296,10 +6296,7 @@ th.hide-for-touch {
   opacity: 0.5; }
 
 .player-edit {
-  float: right;
-  opacity: 0.5; }
-  .player-edit:hover {
-    opacity: 1; }
+  float: right; }
 
 .map {
   height: 100%;

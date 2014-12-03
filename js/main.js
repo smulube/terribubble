@@ -15,6 +15,14 @@ var map = L.map('map', {
     attributionControl: false
 });
 
+var context    = new webkitAudioContext();
+var oscillator = context.createOscillator();
+
+oscillator.type            = 0;
+oscillator.frequency.value = 2000;
+oscillator.connect(context.destination);
+oscillator.noteOn && oscillator.noteOn(0); // this method doesn't seem to exist, though it's in the docs?
+
 socket.on('connect', function (data) {
     console.log("connected");
 });
@@ -82,11 +90,11 @@ var processBubbles = function() {
                     $(".js-name").css("color",bubble.color);
                 }
 
+                map.panTo( position );
 
                 if ( !hasPosition ) {
                     hasPosition = true;
                     map.fitBounds( bubbleCircles[bubbleId].getBounds() );
-                    map.panTo( position );
                 }
 
                 $(".app-loading").velocity("fadeOut", { duration: 300 });

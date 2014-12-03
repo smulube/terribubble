@@ -48,6 +48,7 @@ var addBubble = function( id, socket ) {
     console.log("add bubble "+ id);
 
     bubbles[ id ] = {
+        number   : _.size(bubbles),
         color    : color({ h: _.random(360), s: 100, l: 50 }).rgbString(),
         position : {}
     };
