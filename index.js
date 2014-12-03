@@ -3,13 +3,15 @@ var express         = require("express");
 var app             = express();
 var sio             = require('socket.io');
 var geolib          = require('geolib');
+var color           = require("color");
 var _               = require('underscore');
 var port            = process.env.PORT || 5000;
 var sassMiddleware  = require('node-sass-middleware');
 
 app.use(sassMiddleware({
   src: __dirname,
-  dest: __dirname
+  dest: __dirname,
+  debug: true
 }));
 
 app.use(express.static(__dirname + "/"));
@@ -21,60 +23,65 @@ console.log("http server listening on %d", port);
 
 var io = sio.listen(server);
 
-var bubbles = {};
-
 io.on('connection', function (socket) {
-    socket.emit('id', socket.id);
+    // send id
+    socket.emit("identity", socket.id);
 
-    socket.on('position', function (data) {
-        bubbles[ socket.id ] = data;
-        think();
-    });
+    addBubble( socket.id, socket );
 
     socket.on('disconnect', function () {
-        delete bubbles[ socket.id ];
-        think();
-        io.emit("log", socket.id +" left");
+        removeBubble( socket.id );
+    });
+
+    socket.on('position', function (data) {
+        updatePosition( socket.id, data );
+    });
+
+    socket.on('options', function (data) {
+        updateOptions( socket.id, data );
     });
 });
 
-var think = function(){
-    var bubbleCount = _.size(bubbles);
+var bubbles = {};
 
-    // if not enough bubbles, let the only bubble know
-    if ( !bubbleCount ) {
-        console.log("no bubbles");
+var addBubble = function( id, socket ) {
+    console.log("add bubble "+ id);
+
+    bubbles[ id ] = {
+        color    : color({ h: _.random(360), s: 100, l: 50 }).rgbString(),
+        position : {}
+    };
+
+    broadcastBubbles();
+};
+
+var updatePosition = function( id, data ) {
+    console.log("update position - "+ id);
+
+    bubbles[ id ].position = data;
+
+    broadcastBubbles();
+};
+
+var updateOptions = function( id, data ) {
+    console.log("update options - "+ id);
+
+    if ( !data.name || data.name === "" ) {
+        data.name = "Bubble "+ _.random(99);
     }
-    else if ( bubbleCount === 1 ) {
-        console.log("only one bubble: "+ Object.keys(bubbles)[0]);
-        io.sockets.connected[Object.keys(bubbles)[0]].emit("log", "only bubble");
-    }
-    else {
-        console.log("ok lets think");
-        io.emit("log", "other bubbles are around and moving!");
-        console.log("calculate overlaps");
 
-        _.each( bubbles, function( itemPosition, itemId ) {
-            var bubbleSize = itemPosition.coords.accuracy;
+    bubbles[ id ].options = data;
 
-            console.log("iterating bubble "+ itemId);
-            console.log("bubble size "+ bubbleSize);
+    broadcastBubbles();
+};
 
-            _.each( bubbles, function( testPosition, testId ) {
-                if ( testId !== itemId ) {
-                    var distance = geolib.getDistance(
-                        { latitude: itemPosition.coords.latitude, longitude: itemPosition.coords.longitude },
-                        { latitude: testPosition.coords.latitude, longitude: testPosition.coords.longitude }
-                    );
+var removeBubble = function( id ) {
+    console.log("remove bubble "+ id);
+    delete bubbles[ id ];
+    broadcastBubbles();
+};
 
-                    console.log("distance from "+ itemId +" to "+ testId +" is "+ distance);
-
-                    if ( distance <= bubbleSize ) {
-                        console.log("--- overlap on "+ itemId +" by "+ testId);
-                        io.sockets.connected[itemId].emit("log", "<strong>"+ testId +" is in your bubble!</strong><br><small>"+ distance +"m away. your bubble is "+ bubbleSize +"m</small>");
-                    }
-                }
-            });
-        });
-    }
+var broadcastBubbles = function() {
+    console.log("broadcast bubbles");
+    io.emit("update", bubbles);
 };

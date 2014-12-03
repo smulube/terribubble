@@ -1,30 +1,90 @@
-@import 'normalize';
+@charset "UTF-8";
+@import "normalize";
 
-body {
-    padding: 40px 20px 20px;
-    font-size: 12px;
+$topbar-bg-color: #000;
+
+@import "../bower_components/foundation/scss/foundation";
+
+.player {
+    padding: 0 $column-gutter/2;
+    color: white;
 }
 
-.log-item {
+.player-name {
+    font-weight: bold;
+}
+
+.player-bubble {
+    margin-left: 1em;
+    font-size: .8em;
     opacity: 0.5;
-
-    &:first-child {
-        opacity: 1;
-        font-size: 16px;
-    }
 }
 
-.id {
-    position: fixed;
+.player-edit {
+    float: right;
+}
+
+.map {
+    height: 100%;
+    background: #000;
+}
+
+.app-loading {
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    padding: 10px 0;
+    height: 100%;
+    background: #000;
+    color: #444;
     text-align: center;
-    background: black;
-    color: gray;
+    font-size: 12px;
+}
 
-    strong {
-        color: white;
+.spinner-container {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    -webkit-transform: translate(0,-50%);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    position: relative;
+    display: inline-block;
+}
+
+.double-bounce1, .double-bounce2 {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: #fff;
+    opacity: 0.6;
+    position: absolute;
+    top: 0;
+    left: 0;
+    -webkit-animation: bounce 2.0s infinite ease-in-out;
+    animation: bounce 2.0s infinite ease-in-out;
+}
+
+.double-bounce2 {
+    -webkit-animation-delay: -1.0s;
+    animation-delay: -1.0s;
+}
+
+@-webkit-keyframes bounce {
+    0%, 100% { -webkit-transform: scale(0.0) }
+    50% { -webkit-transform: scale(1.0) }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: scale(0.0);
+        -webkit-transform: scale(0.0);
+    } 50% {
+        transform: scale(1.0);
+        -webkit-transform: scale(1.0);
     }
 }

@@ -6,6 +6,7 @@
     "url": "https://github.com/heroku-examples/node-ws-test.git"
   },
   "dependencies": {
+    "color": "^0.7.3",
     "express": "^4.4.5",
     "geolib": "^2.0.14",
     "node-sass-middleware": "latest",

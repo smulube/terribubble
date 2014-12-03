@@ -5,17 +5,64 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Terribubble</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-
+        <link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css">
         <link rel="stylesheet" href="css/main.css">
-        <script src="bower_components/modernizr/modernizr.js"></script>
+        <script src="bower_components/foundation/js/vendor/modernizr.js"></script>
     </head>
     <body>
-        <div class="js-id id"></div>
-        <div class="js-log log"></div>
-        <br>
-        <pre class="js-geo geo"></pre>
+        <div class="fixed">
+            <nav class="top-bar" data-topbar role="navigation">
+                <div class="player">
+                    <strong class="player-name js-name"></strong>
+                    <span class="player-bubble"><strong class="js-size"></strong></span>
+                    <a href="#" class="player-edit button" data-reveal-id="js-player-edit">Edit</a>
+                </div>
+            </nav>
+        </div>
 
-        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+        <div id="js-player-edit" class="reveal-modal" data-reveal>
+            <h2>Your Bubble</h2>
+            <br>
+            <form class="js-form">
+                <div class="row collapse">
+                    <div class="large-12 columns">
+                        <label>Name
+                            <input class="js-form-name" type="text" placeholder="e.g. Pete" />
+                        </label>
+                    </div>
+                </div>
+                <div class="row collapse">
+                    <div class="large-12 columns">
+                        <label>Size (in meters)
+                            <input class="js-form-size" type="text" placeholder="...in meters" value="15" />
+                        </label>
+                    </div>
+                </div>
+                <br>
+                <div class="row collapse">
+                    <button type="submit" class="button js-start">Start</a>
+                </div>
+            </form>
+        </div>
+
+        <div id="map" class="map"></div>
+
+        <div class="fixed app-loading">
+            <div class="spinner-container">
+                <div class="spinner">
+                    <div class="double-bounce1"></div>
+                    <div class="double-bounce2"></div>
+                </div>
+            </div>
+        </div>
+
+        <script src="bower_components/underscore/underscore-min.js"></script>
+        <script src="bower_components/leaflet/dist/leaflet.js"></script>
+        <script src="bower_components/foundation/js/vendor/jquery.js"></script>
+        <script src="bower_components/foundation/js/vendor/fastclick.js"></script>
+        <script src="bower_components/velocity/velocity.min.js"></script>
+        <script src="bower_components/velocity/velocity.ui.min.js"></script>
+        <script src="bower_components/foundation/js/foundation.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="js/main.js"></script>
     </body>
