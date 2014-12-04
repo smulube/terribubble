@@ -207,6 +207,7 @@ var setOptions = function(){
     // activate sounds
     _.each(sounds,function(sound){ sound.load(); });
     updateOptions();
+    $(".js-start").blur();
     $('#js-player-edit').foundation('reveal', 'close');
 };
 
