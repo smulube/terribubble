@@ -20,6 +20,12 @@ $topbar-bg-color: #000;
     opacity: 0.5;
 }
 
+.player-count {
+    margin-left: 1em;
+    font-size: .7em;
+    opacity: 0.5;
+}
+
 .player-edit {
     float: right;
 }
@@ -88,3 +94,5 @@ $topbar-bg-color: #000;
         -webkit-transform: scale(1.0);
     }
 }
+
+select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] { font-size: 16px; }

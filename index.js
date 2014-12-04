@@ -43,14 +43,14 @@ io.on('connection', function (socket) {
 });
 
 var bubbles = {};
+var slots = _.shuffle([0,1,2,3,4,5,6,7,8,9,10,11]);
 
 var addBubble = function( id, socket ) {
     console.log("add bubble "+ id);
 
     bubbles[ id ] = {
-        number   : _.size(bubbles),
-        color    : color({ h: _.random(360), s: 100, l: 50 }).rgbString(),
-        position : {}
+        slot  : slots.shift(),
+        color : color({ h: _.random(360), s: 100, l: 50 }).rgbString()
     };
 
     broadcastBubbles();
@@ -78,6 +78,8 @@ var updateOptions = function( id, data ) {
 
 var removeBubble = function( id ) {
     console.log("remove bubble "+ id);
+    slots.push( bubbles[ id ].slot );
+    slots = _.shuffle(slots);
     delete bubbles[ id ];
     broadcastBubbles();
 };
