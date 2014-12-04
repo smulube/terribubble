@@ -54,6 +54,7 @@ var processBubbles = function() {
         return bubbleId === currentId;
     });
     var ownBubblePosition = ownBubble.position && ownBubble.position.coords ? L.latLng( [ ownBubble.position.coords.latitude, ownBubble.position.coords.longitude ] ) : null;
+    var ownBubbleOverlap = false;
 
     // loop each bubble
     _.each( bubbles, function( bubble, bubbleId ) {
@@ -144,7 +145,8 @@ var processBubbles = function() {
         if ( position && size && slot && ownBubblePosition && bubbleId !== currentId && ownBubble.options && typeof ownBubble.options.size !== "undefined" ) {
             if ( ownBubblePosition.distanceTo(position) - size < ownBubble.options.size ) {
                 sounds[bubblesLocal[bubbleId].slot].play();
-                bubblesLocal[bubbleId].overlap = true;
+                bubblesLocal[bubbleId].overlap  = true;
+                ownBubbleOverlap = true;
             }
             else {
                 sounds[bubblesLocal[bubbleId].slot].stop();
@@ -174,6 +176,17 @@ var processBubbles = function() {
             }
         }
     });
+
+    // handle own overlapping sound
+    if ( bubblesLocal[currentId] ) {
+        if ( ownBubbleOverlap ) {
+            sounds[bubblesLocal[currentId].slot].play();
+            bubblesLocal[currentId].overlap  = true;
+        }
+        else {
+            bubblesLocal[currentId].overlap = false;
+        }
+    }
 
     // clear up bubbles that left
     var bubbleIds = _.keys(bubbles);
