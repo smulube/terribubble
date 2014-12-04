@@ -29,22 +29,22 @@ for (var i = 0; i < 12; i++) {
 };
 
 socket.on('connect', function (data) {
-    console.log("connected");
+    //console.log("connected");
 });
 
 socket.on('disconnect', function (data) {
-    console.log("disconnected");
+    //console.log("disconnected");
 });
 
 socket.on('identity', function (data) {
-    console.log("identity", data);
+    //console.log("identity", data);
     currentId = data;
 
     $('#js-player-edit').foundation('reveal', 'open');
 });
 
 socket.on('update', function (data) {
-    console.log("update", data);
+    //console.log("update", data);
     bubbles = data;
     processBubbles();
 });
@@ -71,7 +71,6 @@ var processBubbles = function() {
 
         // slot
         if ( typeof bubble.slot !== "undefined" ) {
-            console.log("slot:"+ bubble.slot);
             slot = bubble.slot;
         }
 
@@ -107,16 +106,18 @@ var processBubbles = function() {
                 })
                 .addTo(map);
 
-                bubblesLocal[bubbleId].soundVolume = 0;
+                bubblesLocal[bubbleId].soundVolume = bubblesLocal[bubbleId].soundVolume || 0;
+                bubblesLocal[bubbleId].overlap = bubblesLocal[bubbleId].overlap || false;
+                bubblesLocal[bubbleId].slot = slot;
 
                 bubblesLocal[bubbleId].soundStart = setTimeout(function(){
                     bubblesLocal[bubbleId].sound = setInterval(function(){
-                        sounds[slot].setVolume(bubblesLocal[bubbleId].soundVolume).play();
+                        sounds[bubblesLocal[bubbleId].slot].play();
 
-                        setTimeout(function(){
-                            sounds[slot].fadeOut(250, function(){
-                                sounds[slot].stop();
-                            });
+                        bubblesLocal[bubbleId].soundStop = setTimeout(function(){
+                            if ( !bubblesLocal[bubbleId].overlap ) {
+                                sounds[bubblesLocal[bubbleId].slot].stop();
+                            }
                         }, 100);
                     },2000);
                 },_.random(0,2000));
@@ -126,11 +127,12 @@ var processBubbles = function() {
         else {
             bubblesLocal[bubbleId].circle.setLatLng( position );
             bubblesLocal[bubbleId].circle.setRadius( size );
+            bubblesLocal[bubbleId].slot = slot;
         }
 
         // update volume
         if ( bubblesLocal[bubbleId] && position && ownBubblePosition ) {
-            console.log("volume of frequency "+ (450 + (50 * slot)), parseInt(100 - (ownBubblePosition.distanceTo(position) * 2)));
+            //console.log("volume of frequency "+ (450 + (50 * slot)), parseInt(100 - (ownBubblePosition.distanceTo(position) * 2)));
             bubblesLocal[bubbleId].soundVolume = parseInt(100 - (ownBubblePosition.distanceTo(position) * 2));
             if ( bubblesLocal[bubbleId].soundVolume < 0 ) {
                 bubblesLocal[bubbleId].soundVolume = 0;
@@ -139,13 +141,18 @@ var processBubbles = function() {
         }
 
         // overlapping?
-        if ( position && size && ownBubblePosition && bubbleId !== currentId && ownBubble.options && typeof ownBubble.options.size !== "undefined" ) {
+        if ( position && size && slot && ownBubblePosition && bubbleId !== currentId && ownBubble.options && typeof ownBubble.options.size !== "undefined" ) {
             if ( ownBubblePosition.distanceTo(position) - size < ownBubble.options.size ) {
-                console.log("overlapping "+ name +" by "+ ( ownBubble.options.size - (ownBubblePosition.distanceTo(position) - size) ));
+                sounds[bubblesLocal[bubbleId].slot].play();
+                bubblesLocal[bubbleId].overlap = true;
             }
             else {
-                console.log("not overlapping "+ name +" by "+ ( (ownBubblePosition.distanceTo(position) - size) - ownBubble.options.size ));
+                sounds[bubblesLocal[bubbleId].slot].stop();
+                bubblesLocal[bubbleId].overlap = false;
             }
+        }
+        else if ( bubblesLocal[bubbleId] ) {
+            bubblesLocal[bubbleId].overlap = false;
         }
 
         // if it's our bubble
@@ -174,10 +181,10 @@ var processBubbles = function() {
     _.each( bubblesLocal, function( bubble, bubbleId ) {
         if ( !_.contains( bubbleIds, bubbleId ) ) {
             map.removeLayer( bubblesLocal[bubbleId].circle );
+            sounds[bubblesLocal[bubbleId].slot].stop();
             clearInterval( bubblesLocal[bubbleId].sound );
-            if ( bubblesLocal[bubbleId].soundStart ) {
-                clearTimeout( bubblesLocal[bubbleId].soundStart );
-            }
+            clearTimeout( bubblesLocal[bubbleId].soundStart );
+            clearTimeout( bubblesLocal[bubbleId].soundStop );
             delete bubblesLocal[bubbleId];
         }
     });
@@ -206,13 +213,13 @@ var updateOptions = function() {
 };
 
 var newPosition = function(position) {
-    console.log("new position");
+    //console.log("new position");
     currentPos = $.extend(true, {} ,position);
     socket.emit('position', currentPos);
 };
 
 var geolocationError = function(error) {
-    console.log("geolocation error");
+    //console.log("geolocation error");
 };
 
 var watchId = navigator.geolocation.watchPosition(
