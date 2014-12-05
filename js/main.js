@@ -23,7 +23,7 @@ var sounds = [];
 
 for (var i = 0; i < 12; i++) {
     sounds.push(new buzz.sound( "/sounds/"+ (450 + (50 * i)) +".mp3", {
-        volume      : 0,
+        volume      : 100,
         webAudioApi : true
     }));
 };
@@ -50,157 +50,156 @@ socket.on('update', function (data) {
 });
 
 var processBubbles = function() {
+    // only handle bubbles that are ready to play
+    _.each( bubbles, function(bubble,bubbleId) {
+        if ( !bubble.ready ) {
+            delete bubbles[bubbleId];
+        }
+    });
+
     var ownBubble = _.find( bubbles, function(bubble, bubbleId) {
         return bubbleId === currentId;
     });
-    var ownBubblePosition = ownBubble.position && ownBubble.position.coords ? L.latLng( [ ownBubble.position.coords.latitude, ownBubble.position.coords.longitude ] ) : null;
-    var ownBubbleOverlap = false;
+
+    var ownBubblePosition = ownBubble ? L.latLng( [ ownBubble.position.coords.latitude, ownBubble.position.coords.longitude ] ) : null;
+    var ownBubbleOverlap  = false;
 
     // loop each bubble
     _.each( bubbles, function( bubble, bubbleId ) {
-        var position, size, slot, name, color;
+        var position = L.latLng( [ bubble.position.coords.latitude, bubble.position.coords.longitude ] );
+        var size     = bubble.options.size;
+        var slot     = bubble.slot;
+        var color    = bubble.color;
+        var name     = bubble.options.name;
 
-        // position
-        if ( bubble.position && bubble.position.coords ) {
-            position = L.latLng( [ bubble.position.coords.latitude, bubble.position.coords.longitude ] );
-        }
+        bubblesLocal[bubbleId] = bubblesLocal[bubbleId] || {};
+        bubblesLocal[bubbleId].slot = slot;
+        bubblesLocal[bubbleId].overlap = false;
 
-        // size
-        if ( bubble.options && typeof bubble.options.size !== "undefined" ) {
-            size = bubble.options.size;
-        }
-
-        // slot
-        if ( typeof bubble.slot !== "undefined" ) {
-            slot = bubble.slot;
-        }
-
-        // color
-        if ( bubble.color ) {
-            color = bubble.color;
-        }
-
-        // name
-        if ( bubble.options && bubble.options.name && bubble.options.name !== "" ) {
-            name = bubble.options.name;
-        }
-
-        // if not already on the map, create it
-        if ( !bubblesLocal[bubbleId] ) {
-            if ( position && size ) {
-                bubblesLocal[bubbleId] = {};
-
-                // map circle
-                bubblesLocal[bubbleId].circle = L.circle(
-                    position,
-                    size,
-                    {
-                        stroke: true,
-                        color: color,
-                        fillColor: color,
-                        fillOpacity: 0.5
-                    }
-                )
-                .bindLabel( name, {
-                    noHide: true,
-                    direction: 'auto'
-                })
-                .addTo(map);
-
-                bubblesLocal[bubbleId].soundVolume = bubblesLocal[bubbleId].soundVolume || 0;
-                bubblesLocal[bubbleId].overlap = bubblesLocal[bubbleId].overlap || false;
-                bubblesLocal[bubbleId].slot = slot;
-
-                bubblesLocal[bubbleId].soundStart = setTimeout(function(){
-                    bubblesLocal[bubbleId].sound = setInterval(function(){
-                        sounds[bubblesLocal[bubbleId].slot].play();
-
-                        bubblesLocal[bubbleId].soundStop = setTimeout(function(){
-                            if ( !bubblesLocal[bubbleId].overlap ) {
-                                sounds[bubblesLocal[bubbleId].slot].stop();
-                            }
-                        }, 100);
-                    },2000);
-                },_.random(0,2000));
-            }
+        // map circle
+        // if not created yet, then do it
+        if ( !bubblesLocal[bubbleId].circle  ) {
+            bubblesLocal[bubbleId].circle = L.circle(
+                position,
+                size,
+                {
+                    stroke: true,
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.5
+                }
+            )
+            .bindLabel( name, {
+                noHide: true,
+                direction: 'auto'
+            })
+            .addTo(map);
         }
         // otherwise, update it
         else {
             bubblesLocal[bubbleId].circle.setLatLng( position );
             bubblesLocal[bubbleId].circle.setRadius( size );
-            bubblesLocal[bubbleId].slot = slot;
         }
 
-        // update volume
-        if ( bubblesLocal[bubbleId] && position && ownBubblePosition ) {
-            //console.log("volume of frequency "+ (450 + (50 * slot)), parseInt(100 - (ownBubblePosition.distanceTo(position) * 2)));
-            bubblesLocal[bubbleId].soundVolume = parseInt(100 - (ownBubblePosition.distanceTo(position) * 2));
-            if ( bubblesLocal[bubbleId].soundVolume < 0 ) {
-                bubblesLocal[bubbleId].soundVolume = 0;
-            }
-            sounds[slot].setVolume( bubblesLocal[bubbleId].soundVolume );
-        }
+        // distance / volume / frequency
+        if ( ownBubble ) {
+            // distance
+            bubblesLocal[bubbleId].distance = ownBubblePosition.distanceTo(position) - size - ownBubble.options.size;
+            console.log(name +" is "+ bubblesLocal[bubbleId].distance +"m away");
 
-        // overlapping?
-        if ( position && size && slot && ownBubblePosition && bubbleId !== currentId && ownBubble.options && typeof ownBubble.options.size !== "undefined" ) {
-            if ( ownBubblePosition.distanceTo(position) - size < ownBubble.options.size ) {
-                sounds[bubblesLocal[bubbleId].slot].play();
-                bubblesLocal[bubbleId].overlap  = true;
-                ownBubbleOverlap = true;
+            // not our bubble
+            if ( bubbleId !== currentId ) {
+
+                // detect overlap
+                if ( bubblesLocal[bubbleId].distance <= 0 ) {
+                    sounds[ bubblesLocal[bubbleId].slot ].play().loop();
+                    bubblesLocal[bubbleId].overlap  = true;
+                    ownBubbleOverlap = true;
+                    console.log("overlap bubble "+ slot);
+                }
+                else {
+                    sounds[ bubblesLocal[bubbleId].slot ].unloop().stop();
+                    bubblesLocal[bubbleId].overlap = false;
+                }
+
+                bubblesLocal[bubbleId].soundWait = bubblesLocal[bubbleId].distance * 50;
+                if (bubblesLocal[bubbleId].soundWait > 3000) {
+                    bubblesLocal[bubbleId].soundWait = 3000;
+                }
+
+                // play sound
+                bubblesLocal[bubbleId].soundFunction = function() {
+                    clearTimeout( bubblesLocal[bubbleId].soundStop );
+                    bubblesLocal[bubbleId].soundStart = true;
+
+                    sounds[bubblesLocal[bubbleId].slot].play();
+
+                    bubblesLocal[bubbleId].soundStop = setTimeout( function() {
+                        console.log("stop sound and wait "+ bubblesLocal[bubbleId].soundWait +" ms");
+                        sounds[bubblesLocal[bubbleId].slot].stop();
+
+                        if ( !bubblesLocal[bubbleId].overlap ) {
+                            bubblesLocal[bubbleId].soundDelay = setTimeout( bubblesLocal[bubbleId].soundFunction, bubblesLocal[bubbleId].soundWait );
+                        }
+                        else {
+                            bubblesLocal[bubbleId].soundStart = false;
+                        }
+                    }, 100);
+                };
+
+                if ( !bubblesLocal[bubbleId].soundStart && !bubblesLocal[bubbleId].overlap ) {
+                    bubblesLocal[bubbleId].soundStart = setTimeout( bubblesLocal[bubbleId].soundFunction, _.random(0,2000) );
+                }
             }
-            else {
-                sounds[bubblesLocal[bubbleId].slot].stop();
-                bubblesLocal[bubbleId].overlap = false;
-            }
-        }
-        else if ( bubblesLocal[bubbleId] ) {
-            bubblesLocal[bubbleId].overlap = false;
         }
 
         // if it's our bubble
         if ( bubbleId === currentId ) {
-            if ( position && size && name && color ) {
-                $(".js-name").html(name);
-                $(".js-size").html(size +"m bubble");
-                $(".js-name").css("color",color);
-                $(".js-count").html(_.size(bubbles) +" players");
+            $(".js-name").html(name);
+            $(".js-size").html(size +"m bubble");
+            $(".js-name").css("color",color);
+            $(".js-count").html(_.size( _.filter(bubbles, function(bubble){ return bubble.ready; }) ) +" players");
 
-                if ( !hasPosition ) {
-                    hasPosition = true;
-                    map
-                        .panTo( position )
-                        .fitBounds( bubblesLocal[bubbleId].circle.getBounds(), { padding: [50, 50] });
-                }
-
-                $(".app-loading").velocity("fadeOut", { duration: 300 });
+            if ( !hasPosition ) {
+                hasPosition = true;
+                map
+                    .panTo( position )
+                    .fitBounds( bubblesLocal[bubbleId].circle.getBounds(), { padding: [50, 50] });
             }
+
+            $(".app-loading").velocity("fadeOut", { duration: 300 });
         }
     });
 
-    // handle own overlapping sound
+    // handle own bubble
     if ( bubblesLocal[currentId] ) {
+        // overlapping any bubble
         if ( ownBubbleOverlap ) {
-            sounds[bubblesLocal[currentId].slot].play();
+            sounds[bubblesLocal[currentId].slot].play().loop();
             bubblesLocal[currentId].overlap  = true;
         }
         else {
+            sounds[bubblesLocal[currentId].slot].unloop().stop();
             bubblesLocal[currentId].overlap = false;
         }
     }
 
     // clear up bubbles that left
-    var bubbleIds = _.keys(bubbles);
+    var bubbleIds = _.keys( bubbles );
 
     _.each( bubblesLocal, function( bubble, bubbleId ) {
         if ( !_.contains( bubbleIds, bubbleId ) ) {
             map.removeLayer( bubblesLocal[bubbleId].circle );
             sounds[bubblesLocal[bubbleId].slot].stop();
-            clearInterval( bubblesLocal[bubbleId].sound );
+            clearTimeout( bubblesLocal[bubbleId].soundDelay );
             clearTimeout( bubblesLocal[bubbleId].soundStart );
             clearTimeout( bubblesLocal[bubbleId].soundStop );
             delete bubblesLocal[bubbleId];
         }
     });
+
+    console.log(bubbles);
+    console.log(bubblesLocal);
 };
 
 var setOptions = function(){

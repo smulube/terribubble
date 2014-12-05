@@ -56,11 +56,18 @@ var addBubble = function( id, socket ) {
     broadcastBubbles();
 };
 
+var checkReady = function( id ) {
+    if ( !bubbles[ id ].ready && bubbles[ id ].position && bubbles[ id ].options ) {
+        bubbles[ id ].ready = true;
+    }
+};
+
 var updatePosition = function( id, data ) {
     console.log("update position - "+ id);
 
     bubbles[ id ].position = data;
 
+    checkReady( id );
     broadcastBubbles();
 };
 
@@ -68,11 +75,12 @@ var updateOptions = function( id, data ) {
     console.log("update options - "+ id);
 
     if ( !data.name || data.name === "" ) {
-        data.name = "Bubble "+ _.random(99);
+        data.name = "Bubble "+ bubbles[ id ].slot;
     }
 
     bubbles[ id ].options = data;
 
+    checkReady( id );
     broadcastBubbles();
 };
 
