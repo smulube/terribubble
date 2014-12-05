@@ -108,7 +108,7 @@ var processBubbles = function() {
         if ( ownBubble ) {
             // distance
             bubblesLocal[bubbleId].distance = ownBubblePosition.distanceTo(position) - size - ownBubble.options.size;
-            console.log(name +" is "+ bubblesLocal[bubbleId].distance +"m away");
+            //console.log(name +" is "+ bubblesLocal[bubbleId].distance +"m away");
 
             // not our bubble
             if ( bubbleId !== currentId ) {
