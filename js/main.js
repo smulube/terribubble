@@ -5,14 +5,13 @@ $(document).foundation();
 var currentId;
 var bubbles       = {};
 var bubblesLocal  = {};
-var hasPosition   = false;
 var socket        = io.connect();
 
 // map setup
 
 var map = L.map('map', {
     center: [0, 0],
-    zoom: 18,
+    zoom: 20,
     zoomControl: false,
     attributionControl: false
 });
@@ -168,13 +167,6 @@ var processBubbles = function() {
 
             map.panTo( position );
 
-            if ( !hasPosition ) {
-                hasPosition = true;
-                map
-                    .fitBounds( bubblesLocal[bubbleId].circle.getBounds() )
-                    .zoomOut(3);
-            }
-
             $(".app-loading").velocity("fadeOut", { duration: 300 });
         }
     });
@@ -204,7 +196,6 @@ var processBubbles = function() {
 var setOptions = function(){
     // activate sounds
     _.each(sounds,function(sound){ sound.load(); });
-    hasPosition = false;
     updateOptions();
     $(".js-start").blur();
     $('#js-player-edit').foundation('reveal', 'close');
