@@ -60,9 +60,11 @@ var processBubbles = function() {
     var ownBubble = _.find( bubbles, function(bubble, bubbleId) {
         return bubbleId === currentId;
     });
+    var ownBubblePosition;
 
-    var ownBubblePosition = ownBubble ? L.latLng( [ ownBubble.position.coords.latitude, ownBubble.position.coords.longitude ] ) : null;
-    var ownBubbleOverlap  = false;
+    if ( ownBubble ) {
+        ownBubblePosition = L.latLng( [ ownBubble.position.coords.latitude, ownBubble.position.coords.longitude ] );
+    }
 
     // loop each bubble
     _.each( bubbles, function( bubble, bubbleId ) {
@@ -112,43 +114,46 @@ var processBubbles = function() {
 
                 // detect overlap
                 if ( bubblesLocal[bubbleId].distance <= 0 ) {
+                    clearTimeout( bubblesLocal[bubbleId].soundStop );
+                    clearTimeout( bubblesLocal[bubbleId].soundStart );
+                    clearTimeout( bubblesLocal[bubbleId].soundDelay );
+                    bubblesLocal[bubbleId].soundStart = false;
                     sounds[ bubblesLocal[bubbleId].slot ].play().loop();
                     bubblesLocal[bubbleId].overlap  = true;
-                    ownBubbleOverlap = true;
-                    console.log("overlap bubble "+ slot);
+                    //console.log("overlap bubble "+ slot);
                 }
                 else {
-                    sounds[ bubblesLocal[bubbleId].slot ].unloop().stop();
+                    if ( bubblesLocal[bubbleId].overlap ) {
+                        sounds[ bubblesLocal[bubbleId].slot ].unloop().stop();
+                    }
                     bubblesLocal[bubbleId].overlap = false;
+
+                    // play sound
+                    bubblesLocal[bubbleId].soundFunction = function() {
+                        clearTimeout( bubblesLocal[bubbleId].soundStop );
+                        bubblesLocal[bubbleId].soundStart = true;
+
+                        sounds[bubblesLocal[bubbleId].slot].play();
+
+                        bubblesLocal[bubbleId].soundStop = setTimeout( function() {
+                            //console.log("stop sound and wait "+ bubblesLocal[bubbleId].soundWait +" ms");
+                            sounds[bubblesLocal[bubbleId].slot].stop();
+
+                            bubblesLocal[bubbleId].soundDelay = setTimeout( bubblesLocal[bubbleId].soundFunction, bubblesLocal[bubbleId].soundWait );
+                        }, 100);
+                    };
+
+                    if ( !bubblesLocal[bubbleId].soundStart ) {
+                        clearTimeout( bubblesLocal[bubbleId].soundStop );
+                        clearTimeout( bubblesLocal[bubbleId].soundStart );
+                        clearTimeout( bubblesLocal[bubbleId].soundDelay );
+                        bubblesLocal[bubbleId].soundStart = setTimeout( bubblesLocal[bubbleId].soundFunction, _.random(0,2000) );
+                    }
                 }
 
                 bubblesLocal[bubbleId].soundWait = bubblesLocal[bubbleId].distance * 50;
                 if (bubblesLocal[bubbleId].soundWait > 3000) {
                     bubblesLocal[bubbleId].soundWait = 3000;
-                }
-
-                // play sound
-                bubblesLocal[bubbleId].soundFunction = function() {
-                    clearTimeout( bubblesLocal[bubbleId].soundStop );
-                    bubblesLocal[bubbleId].soundStart = true;
-
-                    sounds[bubblesLocal[bubbleId].slot].play();
-
-                    bubblesLocal[bubbleId].soundStop = setTimeout( function() {
-                        console.log("stop sound and wait "+ bubblesLocal[bubbleId].soundWait +" ms");
-                        sounds[bubblesLocal[bubbleId].slot].stop();
-
-                        if ( !bubblesLocal[bubbleId].overlap ) {
-                            bubblesLocal[bubbleId].soundDelay = setTimeout( bubblesLocal[bubbleId].soundFunction, bubblesLocal[bubbleId].soundWait );
-                        }
-                        else {
-                            bubblesLocal[bubbleId].soundStart = false;
-                        }
-                    }, 100);
-                };
-
-                if ( !bubblesLocal[bubbleId].soundStart && !bubblesLocal[bubbleId].overlap ) {
-                    bubblesLocal[bubbleId].soundStart = setTimeout( bubblesLocal[bubbleId].soundFunction, _.random(0,2000) );
                 }
             }
         }
@@ -171,17 +176,8 @@ var processBubbles = function() {
         }
     });
 
-    // handle own bubble
-    if ( bubblesLocal[currentId] ) {
-        // overlapping any bubble
-        if ( ownBubbleOverlap ) {
-            sounds[bubblesLocal[currentId].slot].play().loop();
-            bubblesLocal[currentId].overlap  = true;
-        }
-        else {
-            sounds[bubblesLocal[currentId].slot].unloop().stop();
-            bubblesLocal[currentId].overlap = false;
-        }
+    if ( ownBubble ) {
+        sounds[bubblesLocal[currentId].slot].play().loop();
     }
 
     // clear up bubbles that left
@@ -198,13 +194,14 @@ var processBubbles = function() {
         }
     });
 
-    console.log(bubbles);
-    console.log(bubblesLocal);
+    //console.log(bubbles);
+    //console.log(bubblesLocal);
 };
 
 var setOptions = function(){
     // activate sounds
     _.each(sounds,function(sound){ sound.load(); });
+    hasPosition = false;
     updateOptions();
     $(".js-start").blur();
     $('#js-player-edit').foundation('reveal', 'close');
