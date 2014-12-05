@@ -208,10 +208,21 @@ var setOptions = function(){
     $('#js-player-edit').foundation('reveal', 'close');
 };
 
+// cookie stuff
+
+var previousName = $.cookie('name');
+if ( previousName ) {
+    $(".js-form-name").val( previousName );
+}
+
+var previousSize = $.cookie('size');
+if ( previousSize ) {
+    $(".js-form-size").val( previousSize );
+}
+
 $(".js-start").on("click", setOptions);
 $(".js-form").on("submit", function(e){
     e.preventDefault();
-    //setOptions();
 });
 
 var updateOptions = function() {
@@ -219,6 +230,8 @@ var updateOptions = function() {
         name : $(".js-form-name").val(),
         size : $(".js-form-size").val()
     };
+    $.cookie('name', options.name);
+    $.cookie('size', options.size);
     hasPosition = false;
     socket.emit('options', options);
 };
