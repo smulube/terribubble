@@ -166,11 +166,11 @@ var processBubbles = function() {
             $(".js-name").css("color",color);
             $(".js-count").html(_.size( _.filter(bubbles, function(bubble){ return bubble.ready; }) ) +" players");
 
+            map.panTo( position );
+
             if ( !hasPosition ) {
                 hasPosition = true;
-                map
-                    .panTo( position )
-                    .fitBounds( bubblesLocal[bubbleId].circle.getBounds(), { padding: [50, 50] });
+                map.fitBounds( bubblesLocal[bubbleId].circle.getBounds(), { padding: [100, 100] });
             }
 
             $(".app-loading").velocity("fadeOut", { duration: 300 });
