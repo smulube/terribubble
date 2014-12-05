@@ -170,7 +170,9 @@ var processBubbles = function() {
 
             if ( !hasPosition ) {
                 hasPosition = true;
-                map.fitBounds( bubblesLocal[bubbleId].circle.getBounds(), { padding: [100, 100] });
+                map
+                    .fitBounds( bubblesLocal[bubbleId].circle.getBounds() )
+                    .zoomOut(3);
             }
 
             $(".app-loading").velocity("fadeOut", { duration: 300 });
@@ -232,15 +234,21 @@ var updateOptions = function() {
     };
     $.cookie('name', options.name);
     $.cookie('size', options.size);
-    hasPosition = false;
     socket.emit('options', options);
 };
+
+var currentPos;
 
 var newPosition = function(position) {
     //console.log("new position");
     currentPos = $.extend(true, {} ,position);
-    socket.emit('position', currentPos);
 };
+
+var updater = setInterval(function(){
+    if ( currentPos ) {
+        socket.emit('position', currentPos);
+    }
+},500);
 
 var geolocationError = function(error) {
     //console.log("geolocation error");
