@@ -101,6 +101,7 @@ var processBubbles = function() {
         else {
             bubblesLocal[bubbleId].circle.setLatLng( position );
             bubblesLocal[bubbleId].circle.setRadius( size );
+            bubblesLocal[bubbleId].circle.updateLabelContent( name );
         }
 
         // distance / volume / frequency
